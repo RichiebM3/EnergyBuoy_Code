@@ -1,12 +1,10 @@
-# EnergyBuoy_Code
-A environmental energy buoy that stores Solar and Kinetic Energy
-# Dual Solar Power Buoy Monitoring System
+# Triple-Source Power Buoy Monitoring System
 
 [![Arduino](https://img.shields.io/badge/Arduino-R4%20WiFi-00979D?style=flat&logo=arduino)](https://www.arduino.cc/)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Status](https://img.shields.io/badge/Status-Active-success.svg)]()
 
-A robust, dual-redundant solar power monitoring system designed for marine buoy applications. This system provides real-time monitoring of solar charging performance, battery status, and energy generation through serial communication.
+A robust, triple-redundant power monitoring system designed for autonomous marine buoy applications. This system combines dual solar power, Faraday wave energy generation, and intelligent power management with real-time WiFi monitoring.
 
 ## 📋 Table of Contents
 
@@ -18,35 +16,59 @@ A robust, dual-redundant solar power monitoring system designed for marine buoy 
 - [Wiring Diagram](#wiring-diagram)
 - [Configuration](#configuration)
 - [Usage](#usage)
-- [Monitoring Output](#monitoring-output)
+- [API Documentation](#api-documentation)
 - [Troubleshooting](#troubleshooting)
 - [Maintenance](#maintenance)
-- [Contributing](#contributing)
 - [License](#license)
 
 ## 🌊 Overview
 
-This project implements a dual solar power management system for autonomous marine buoys. The system features redundant power generation and storage, ensuring continuous operation even if one solar system fails. Real-time monitoring provides critical data on solar panel performance, battery health, and energy generation.
+This project implements a **triple-redundant power generation system** for autonomous marine buoys, featuring:
 
-### Key Capabilities
+1. **Dual Solar Power Systems** - Two independent 5V solar panels with DFRobot SP110 charge controllers
+2. **Faraday Wave Energy Generator** - Electromagnetic induction system powered by wave motion
+3. **Intelligent Power Management** - Automatic source switching based on availability and battery status
+4. **WiFi Monitoring** - Real-time data access via JSON API
+5. **Bluetooth Connectivity** - Alternative monitoring interface
 
-- **Dual Redundancy**: Two independent solar charging systems for reliability
-- **Real-time Monitoring**: Continuous tracking of voltage, current, and power metrics
-- **Energy Tracking**: Cumulative energy generation measurement in Watt-hours
-- **Battery Management**: Intelligent charging with voltage and current monitoring
-- **Serial Interface**: Easy monitoring through Arduino Serial Monitor
+### Power Source Priority
+
+The system automatically selects the optimal power source:
+
+```
+Priority 1: Faraday Wave Generator (renewable, wave-powered)
+Priority 2: Solar Power (dual redundant systems)
+Priority 3: Battery Reserve (automatic cutoff protection)
+```
 
 ## ✨ Features
 
-- ⚡ Dual solar power management with DFRobot SP110 controllers
-- 🔋 Independent 3.7V Li-ion battery monitoring for each system
-- 📊 Real-time power and energy calculations
-- 🔍 Battery level percentage estimation
-- 📈 Cumulative energy tracking (Wh)
-- 🔄 Charging status indicators (Charging/Discharging/Idle)
-- 📡 I2C communication with configurable addresses
-- 🖥️ Clean, formatted serial output for easy monitoring
-- ⏱️ Configurable update intervals
+- ⚡ **Triple Power Generation**
+- Dual solar panels with independent charge controllers
+- Faraday electromagnetic wave energy harvesting
+- Intelligent automatic source switching
+
+- 🔋 **Advanced Battery Management**
+- Real-time voltage and percentage monitoring
+- Overcharge protection (4.2V cutoff)
+- Deep discharge prevention (3.0V minimum)
+- Automatic charging threshold (20% trigger)
+
+- 📊 **Comprehensive Monitoring**
+- Individual power source tracking
+- Cumulative energy generation (Wh)
+- Battery health status
+- Charging state indicators
+
+- 🌐 **Connectivity**
+- WiFi web server with JSON API
+- Bluetooth serial interface (HC-05)
+- Serial monitor output (115200 baud)
+
+- 🔄 **Redundancy & Reliability**
+- Three independent power sources
+- Automatic failover switching
+- Continuous operation capability
 
 ## 🛠️ Hardware Requirements
 
@@ -54,17 +76,59 @@ This project implements a dual solar power management system for autonomous mari
 
 | Component | Quantity | Specifications | Purpose |
 |-----------|----------|----------------|---------|
-| Arduino R4 WiFi | 1 | Main microcontroller | System controller and data processor |
-| DFRobot Solar Power Manager (SP110) | 2 | I2C interface | Solar charge controllers |
-| 5V Solar Panels | 2 | 5V output, weather-resistant | Primary power generation |
-| Li-ion Batteries | 2 | 3.7V nominal, recommended 2000-5000mAh | Energy storage |
-| I2C Pull-up Resistors | 2 | 4.7kΩ (if not included on modules) | I2C communication reliability |
+| **Arduino R4 WiFi** | 1 | Main microcontroller with WiFi | System controller and data processor |
+| **DFRobot Solar Power Manager (SP110)** | 2 | I2C interface, MPPT charging | Solar charge controllers |
+| **5V Solar Panels** | 2 | 5V output, weather-resistant, 5-10W recommended | Primary solar power generation |
+| **Li-ion Batteries (Solar)** | 2 | 3.7V nominal, 2000-5000mAh | Solar system energy storage |
+| **Li-ion Battery (Main)** | 1 | 3.7V nominal, 5000-10000mAh | Main system battery |
+| **Neodymium Magnets** | 8 | N52 grade, 10-15mm diameter | Faraday generator magnets |
+| **Copper Wire Coil** | 1 | 8 feet, 26-30 AWG, ~1000 turns | Faraday electromagnetic coil |
+| **PVC Tube** | 1 | 1-2" diameter, 6-12" length | Faraday generator housing |
+| **HC-05 Bluetooth Module** | 1 | Serial UART interface | Bluetooth connectivity |
+| **Voltage Dividers** | 2 | For A0 and A1 analog inputs | Battery voltage sensing |
+| **MOSFETs or Relays** | 2 | For pins 7 and 8 | Charging control switches |
+
+### Faraday Wave Generator Components
+
+The Faraday generator converts wave motion into electrical energy:
+
+```
+┌─────────────────────────────────────┐
+│     FARADAY WAVE GENERATOR          │
+│                                     │
+│  ┌─────────────────────────────┐   │
+│  │   PVC Tube (Housing)        │   │
+│  │                             │   │
+│  │  ┌──┐  ┌──┐  ┌──┐  ┌──┐   │   │
+│  │  │M │  │M │  │M │  │M │   │   │ M = Neodymium
+│  │  └──┘  └──┘  └──┘  └──┘   │   │     Magnet
+│  │  ┌──┐  ┌──┐  ┌──┐  ┌──┐   │   │
+│  │  │M │  │M │  │M │  │M │   │   │
+│  │  └──┘  └──┘  └──┘  └──┘   │   │
+│  │                             │   │
+│  │  ╔═══════════════════════╗ │   │
+│  │  ║ Copper Coil (~1000    ║ │   │
+│  │  ║ turns, 8ft wire)      ║ │   │
+│  │  ╚═══════════════════════╝ │   │
+│  │                             │   │
+│  └─────────────────────────────┘   │
+│           │                         │
+│           ▼                         │
+│    Rectifier Bridge                 │
+│    (AC to DC conversion)            │
+│           │                         │
+│           ▼                         │
+│    To Arduino A1 Pin                │
+└─────────────────────────────────────┘
+```
 
 ### Additional Materials
 
 - **Enclosure**: Waterproof IP67+ rated enclosure for electronics
 - **Connectors**: Marine-grade waterproof connectors
 - **Wiring**: 18-22 AWG stranded wire, marine grade
+- **Rectifier Bridge**: Full-wave rectifier for Faraday AC output
+- **Smoothing Capacitors**: 100-1000µF for Faraday output stabilization
 - **Mounting Hardware**: Stainless steel or marine-grade fasteners
 - **Cable Glands**: Waterproof cable entry points
 - **Heat Shrink Tubing**: For connection protection
@@ -76,38 +140,69 @@ This project implements a dual solar power management system for autonomous mari
 - **RTC Module**: Real-time clock for timestamping
 - **Temperature Sensors**: Monitor ambient and battery temperature
 - **Status LEDs**: Visual system status indicators
-- **Buzzer**: Audio alerts for critical conditions
+- **GPS Module**: Location tracking for mobile buoys
+- **LoRa Module**: Long-range communication backup
 
 ## 🏗️ System Architecture
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                    SOLAR BUOY SYSTEM                     │
-├─────────────────────────────────────────────────────────┤
-│                                                          │
-│  ┌──────────────┐              ┌──────────────┐        │
-│  │ Solar Panel 1│              │ Solar Panel 2│        │
-│  │    (5V)      │              │    (5V)      │        │
-│  └──────┬───────┘              └──────┬───────┘        │
-│         │                              │                │
-│         ▼                              ▼                │
-│  ┌──────────────┐              ┌──────────────┐        │
-│  │   SP110 #1   │              │   SP110 #2   │        │
-│  │  (Addr 0x10) │              │  (Addr 0x11) │        │
-│  └──────┬───────┘              └──────┬───────┘        │
-│         │                              │                │
-│         │         ┌──────────┐         │                │
-│         ├─────────┤ Arduino  ├─────────┤                │
-│         │   I2C   │ R4 WiFi  │   I2C   │                │
-│         │         └────┬─────┘         │                │
-│         │              │               │                │
-│         ▼              ▼               ▼                │
-│  ┌──────────────┐  Serial      ┌──────────────┐        │
-│  │  Battery 1   │  Monitor     │  Battery 2   │        │
-│  │   (3.7V)     │              │   (3.7V)     │        │
-│  └──────────────┘              └──────────────┘        │
-│                                                          │
-└─────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────┐
+│                  TRIPLE-SOURCE POWER BUOY SYSTEM                  │
+├──────────────────────────────────────────────────────────────────┤
+│                                                                   │
+│  ┌──────────────┐              ┌──────────────┐                 │
+│  │ Solar Panel 1│              │ Solar Panel 2│                 │
+│  │    (5V)      │              │    (5V)      │                 │
+│  └──────┬───────┘              └──────┬───────┘                 │
+│         │                              │                         │
+│         ▼                              ▼                         │
+│  ┌──────────────┐              ┌──────────────┐                 │
+│  │   SP110 #1   │              │   SP110 #2   │                 │
+│  │  (Addr 0x10) │              │  (Addr 0x11) │                 │
+│  └──────┬───────┘              └──────┬───────┘                 │
+│         │                              │                         │
+│         │         ┌──────────┐         │                         │
+│         ├─────────┤ Arduino  ├─────────┤                         │
+│         │   I2C   │ R4 WiFi  │   I2C   │                         │
+│         │         │          │         │                         │
+│         │         │ A0  A1   │         │                         │
+│         │         │ │   │    │         │                         │
+│         │         │ │   │    │         │                         │
+│         ▼         │ ▼   ▼    │         ▼                         │
+│  ┌──────────────┐ │ │   │    │  ┌──────────────┐                │
+│  │  Battery 1   │ │ │   │    │  │  Battery 2   │                │
+│  │   (3.7V)     │ │ │   │    │  │   (3.7V)     │                │
+│  └──────────────┘ │ │   │    │  └──────────────┘                │
+│                   │ │   │    │                                   │
+│                   │ │   │    │  ┌─────────────────────────────┐ │
+│                   │ │   │    │  │  Faraday Wave Generator     │ │
+│                   │ │   │    │  │  ┌──────────────────────┐   │ │
+│                   │ │   │    │  │  │ 8 Neodymium Magnets  │   │ │
+│                   │ │   │    │  │  │ Copper Coil (8ft)    │   │ │
+│                   │ │   │    │  │  │ PVC Tube Housing     │   │ │
+│                   │ │   │    │  │  └──────────┬───────────┘   │ │
+│                   │ │   │    │  │             │               │ │
+│                   │ │   │    │  │        Rectifier            │ │
+│                   │ │   └────┼──┼─────────────┘               │ │
+│                   │ │        │  └─────────────────────────────┘ │
+│                   │ │        │                                   │
+│                   │ │        │  ┌─────────────┐                 │
+│                   │ └────────┼──┤ Main Battery│                 │
+│                   │          │  │   (3.7V)    │                 │
+│                   │          │  └─────────────┘                 │
+│                   │          │                                   │
+│                   │          ▼                                   │
+│                   │    ┌──────────┐                             │
+│                   │    │  WiFi    │                             │
+│                   │    │  Server  │                             │
+│                   │    └──────────┘                             │
+│                   │                                              │
+│                   │    ┌──────────┐                             │
+│                   └────┤ Bluetooth│                             │
+│                        │  HC-05   │                             │
+│                        └──────────┘                             │
+│                                                                   │
+└──────────────────────────────────────────────────────────────────┘
 ```
 
 ## 📥 Installation
@@ -122,11 +217,9 @@ Download and install the latest Arduino IDE from [arduino.cc](https://www.arduin
 Open Arduino IDE and navigate to **Tools → Manage Libraries**, then search and install:
 
 1. **DFRobot_SP110** - Solar Power Manager library
- ```
- Library Manager → Search "DFRobot SP110" → Install
- ```
-
-2. **Wire** - I2C communication (usually pre-installed)
+2. **WiFiS3** - WiFi library for Arduino R4 (pre-installed)
+3. **ArduinoJson** - JSON serialization library
+4. **Wire** - I2C communication (pre-installed)
 
 #### Install Arduino R4 WiFi Board Support
 
@@ -134,97 +227,177 @@ Open Arduino IDE and navigate to **Tools → Manage Libraries**, then search and
 2. Search for "Arduino UNO R4"
 3. Install "Arduino UNO R4 Boards"
 
-### 2. Hardware Assembly
+### 2. Build Faraday Wave Generator
 
-#### Step 1: Prepare the SP110 Modules
+#### Materials Needed
+- PVC tube (1-2" diameter, 6-12" length)
+- 8 neodymium magnets (N52 grade, 10-15mm)
+- Copper wire (26-30 AWG, 8 feet)
+- End caps for PVC tube
+- Rectifier bridge (1A, 50V)
+- Smoothing capacitor (470µF, 16V)
 
-1. Configure I2C addresses:
- - SP110 #1: Leave at default address (0x10)
- - SP110 #2: Change address to 0x11 (refer to SP110 documentation)
+#### Assembly Steps
+
+1. **Prepare Magnet Assembly**
+ - Arrange 8 magnets in alternating polarity (N-S-N-S-N-S-N-S)
+ - Secure magnets inside PVC tube with non-conductive spacers
+ - Ensure magnets can move freely within tube
+
+2. **Wind Copper Coil**
+ - Wrap copper wire around outside of PVC tube (~1000 turns)
+ - Keep windings tight and uniform
+ - Leave 6-8 inches of wire on each end for connections
+
+3. **Add Rectifier Circuit**
+ - Connect coil output to full-wave rectifier bridge
+ - Add smoothing capacitor across DC output
+ - Connect positive output to Arduino A1 through voltage divider
+ - Connect negative to Arduino GND
+
+4. **Seal and Waterproof**
+ - Install end caps on PVC tube
+ - Apply marine sealant to all joints
+ - Protect coil with heat shrink or waterproof coating
+
+### 3. Hardware Assembly
+
+#### Step 1: Configure SP110 Modules
+
+1. SP110 #1: Leave at default address (0x10)
+2. SP110 #2: Change address to 0x11 (refer to SP110 documentation)
 
 #### Step 2: Connect I2C Bus
 
-Connect both SP110 modules to the Arduino R4 WiFi I2C bus:
+```
+Arduino R4 WiFi → SP110 #1 & SP110 #2
+SDA → SDA (both modules)
+SCL → SCL (both modules)
+GND → GND (both modules)
+5V → VCC (both modules, if needed)
+```
 
-- **SDA**: Connect to Arduino SDA pin
-- **SCL**: Connect to Arduino SCL pin
-- **GND**: Connect to Arduino GND
-- **VCC**: Connect to Arduino 5V (if needed for logic)
+#### Step 3: Connect Analog Inputs
 
-#### Step 3: Connect Solar Panels
+```
+A0 → Main Battery Voltage (through voltage divider)
+A1 → Faraday Generator Output (through voltage divider)
+```
 
-- Connect Solar Panel 1 to SP110 #1 solar input
-- Connect Solar Panel 2 to SP110 #2 solar input
+**Voltage Divider Circuit for 3.3V ADC:**
+```
+Battery+ ──┬── 10kΩ ──┬── A0/A1
+         │          │
+        GND     ──  3.3kΩ ──┬── GND
+                             │
+```
 
-#### Step 4: Connect Batteries
+#### Step 4: Connect Control Pins
 
-- Connect Battery 1 to SP110 #1 battery output
-- Connect Battery 2 to SP110 #2 battery output
+```
+Pin 7 → Solar Charging Control (MOSFET/Relay)
+Pin 8 → Faraday Charging Control (MOSFET/Relay)
+```
 
-⚠️ **Important**: Ensure correct polarity for all connections!
+#### Step 5: Connect Bluetooth Module
 
-### 3. Upload Code
+```
+Arduino R4    HC-05
+Pin 2 (RX) → TX
+Pin 3 (TX) → RX
+5V → VCC
+GND → GND
+```
+
+#### Step 6: Power Connections
+
+- Solar Panel 1 → SP110 #1 Solar Input
+- Solar Panel 2 → SP110 #2 Solar Input
+- Battery 1 → SP110 #1 Battery Output
+- Battery 2 → SP110 #2 Battery Output
+- Main Battery → Charging control circuit
+- Faraday Generator → Rectifier → A1 Pin
+
+### 4. Upload Code
 
 1. Open the provided `.ino` file in Arduino IDE
-2. Select **Tools → Board → Arduino UNO R4 WiFi**
-3. Select the correct **Port** under **Tools → Port**
-4. Click **Upload** button
-5. Wait for "Done uploading" message
+2. Update WiFi credentials in code:
+ ```cpp
+ const char* ssid = "YOUR_WIFI_SSID";
+ const char* password = "YOUR_WIFI_PASSWORD";
+ ```
+3. Select **Tools → Board → Arduino UNO R4 WiFi**
+4. Select correct **Port** under **Tools → Port**
+5. Click **Upload** button
+6. Wait for "Done uploading" message
 
 ## 🔌 Wiring Diagram
 
-### I2C Connections
+### Complete System Wiring
 
 ```
-Arduino R4 WiFi          SP110 #1              SP110 #2
-┌──────────────┐      ┌──────────┐         ┌──────────┐
-│              │      │          │         │          │
-│     SDA ─────┼──────┤ SDA      │    ┌────┤ SDA      │
-│              │      │          │    │    │          │
-│     SCL ─────┼──────┤ SCL      │    │    │ SCL      │
-│              │      │          │    │    │          │
-│     GND ─────┼──────┤ GND      ├────┴────┤ GND      │
-│              │      │          │         │          │
-│     5V  ─────┼──────┤ VCC      ├─────────┤ VCC      │
-│              │      │          │         │          │
-└──────────────┘      └──────────┘         └──────────┘
-```
-
-### Power Connections
-
-```
-Solar Panel 1 ──→ SP110 #1 (Solar Input) ──→ Battery 1 (3.7V)
-Solar Panel 2 ──→ SP110 #2 (Solar Input) ──→ Battery 2 (3.7V)
+┌─────────────────────────────────────────────────────────────────┐
+│                     ARDUINO R4 WIFI                              │
+│                                                                  │
+│  SDA ───────┬─────────── SP110 #1 (SDA)                         │
+│  SCL ───────┼─────┬───── SP110 #1 (SCL)                         │
+│  GND ───────┼─────┼─┬─── SP110 #1 (GND)                         │
+│  5V  ───────┼─────┼─┼─── SP110 #1 (VCC)                         │
+│             │     │ │                                            │
+│             └─────┼─┼─── SP110 #2 (SDA)                         │
+│                   └─┼─── SP110 #2 (SCL)                         │
+│                     ├─── SP110 #2 (GND)                         │
+│                     └─── SP110 #2 (VCC)                         │
+│                                                                  │
+│  A0 ─────── Main Battery (via voltage divider)                  │
+│  A1 ─────── Faraday Generator (via voltage divider)             │
+│                                                                  │
+│  Pin 7 ──── Solar Charging Control (MOSFET)                     │
+│  Pin 8 ──── Faraday Charging Control (MOSFET)                   │
+│                                                                  │
+│  Pin 2 (RX) ── HC-05 (TX)                                       │
+│  Pin 3 (TX) ── HC-05 (RX)                                       │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 ## ⚙️ Configuration
 
+### WiFi Settings
+
+Update your WiFi credentials in the code:
+
+```cpp
+const char* ssid = "YOUR_NETWORK_NAME";
+const char* password = "YOUR_PASSWORD";
+```
+
 ### Battery Parameters
 
-The default configuration is set for 3.7V Li-ion batteries:
+Adjust for your specific battery:
 
 ```cpp
-manager.setBatteryChargeVoltage(4200);    // 4.2V max charge (mV)
-manager.setConstantChargeCurrent(1000);   // 1A charge current (mA)
-manager.setConstantVoltage(4200);         // 4.2V constant voltage (mV)
+const float maxBatteryVoltage = 4.2;  // Li-ion max voltage
+const float minBatteryVoltage = 3.0;  // Li-ion min voltage
+const float batteryThreshold = 20.0;  // Charging trigger percentage
 ```
 
-### Monitoring Interval
+### Faraday Generator Settings
 
-Default update rate is 5 seconds. To change:
+Calibrate based on your generator output:
 
 ```cpp
-delay(5000); // Change value in milliseconds
+const float faradayMinVoltage = 2.0;  // Minimum voltage for charging
 ```
 
-### I2C Addresses
-
-If you need different addresses:
+### Update Intervals
 
 ```cpp
-DFRobot_SP110_I2C solarManager1(&Wire, 0x10);  // Change 0x10
-DFRobot_SP110_I2C solarManager2(&Wire, 0x11);  // Change 0x11
+const unsigned long CHECK_INTERVAL = 5000;  // 5 seconds (demo)
+const unsigned long WIFI_UPDATE_INTERVAL = 60000;  // 1 minute
 ```
+
+For production deployment, increase `CHECK_INTERVAL` to 30000-60000ms.
 
 ## 🖥️ Usage
 
@@ -233,177 +406,305 @@ DFRobot_SP110_I2C solarManager2(&Wire, 0x11);  // Change 0x11
 1. Connect Arduino R4 WiFi to computer via USB
 2. Open **Tools → Serial Monitor** in Arduino IDE
 3. Set baud rate to **115200**
-4. System will initialize and begin displaying data
+4. System will initialize all components
+5. Note the IP address displayed for WiFi access
 
 ### Serial Monitor Output
 
-The system displays comprehensive monitoring data every 5 seconds:
-
 ```
-Dual Solar Power Buoy Monitoring System
-=======================================
-Solar Manager 1 initialized successfully!
-Solar Manager 2 initialized successfully!
-Time since start: 5 seconds
+========================================
+Triple-Source Power Buoy System
+========================================
 
-========================================
-SOLAR SYSTEM 1
-========================================
-SOLAR PANEL:
-Voltage: 5.12 V
-Current: 245.3 mA
-Power: 1.25 W
+Initializing Solar Power Managers...
+✓ Solar Manager 1 initialized
+✓ Solar Manager 2 initialized
+Connecting to WiFi: YourNetwork
+✓ WiFi connected
+IP address: 192.168.1.100
 
-BATTERY:
-Voltage: 3.85 V
-Current: 230.1 mA
-Level: 70.8%
+✓ System Ready!
+========================================
 
-ENERGY STATISTICS:
-Total Energy: 0.002 Wh
-Status: Charging
+╔════════════════════════════════════════════════════════╗
+║          TRIPLE-SOURCE POWER BUOY STATUS              ║
+╚════════════════════════════════════════════════════════╝
 
-========================================
-SOLAR SYSTEM 2
-========================================
-[Similar output for System 2]
+┌─── MAIN BATTERY ───────────────────────────────────────┐
+│ Voltage: 3.85 V
+│ Level: 70.8 %
+│ Status: NORMAL
+│ Primary Source: FARADAY
+└────────────────────────────────────────────────────────┘
 
-========================================
-COMBINED SYSTEM STATUS
-========================================
-Total Power Output: 2.48 W
-Total Energy Generated: 0.004 Wh
+┌─── SOLAR SYSTEM 1 ─────────────────────────────────────┐
+│ Panel: 5.12 V @ 245.3 mA
+│ Power: 1.25 W
+│ Battery: 3.92 V (76.7%)
+│ Energy: 0.125 Wh
+│ Status: CHARGING
+└────────────────────────────────────────────────────────┘
+
+┌─── SOLAR SYSTEM 2 ─────────────────────────────────────┐
+│ Panel: 5.08 V @ 238.1 mA
+│ Power: 1.21 W
+│ Battery: 3.88 V (73.3%)
+│ Energy: 0.118 Wh
+│ Status: CHARGING
+└────────────────────────────────────────────────────────┘
+
+┌─── FARADAY WAVE GENERATOR ─────────────────────────────┐
+│ Voltage: 2.45 V
+│ Power: 0.245 W
+│ Energy: 0.032 Wh
+│ Status: ACTIVE
+│ Charging: ON
+└────────────────────────────────────────────────────────┘
+
+┌─── COMBINED SYSTEM ────────────────────────────────────┐
+│ Total Power: 2.71 W
+│ Total Energy: 0.275 Wh
+│ Uptime: 325 seconds
+└────────────────────────────────────────────────────────┘
 ```
 
-## 📊 Monitoring Output
+## 📡 API Documentation
 
-### Metrics Explained
+### WiFi JSON API
 
-| Metric | Description | Units |
-|--------|-------------|-------|
-| Solar Voltage | Voltage from solar panel | Volts (V) |
-| Solar Current | Current from solar panel | Milliamps (mA) |
-| Solar Power | Instantaneous power generation | Watts (W) |
-| Battery Voltage | Current battery voltage | Volts (V) |
-| Battery Current | Charging/discharging current | Milliamps (mA) |
-| Battery Level | Estimated charge percentage | Percent (%) |
-| Total Energy | Cumulative energy generated | Watt-hours (Wh) |
+Access real-time data by navigating to the Arduino's IP address in a web browser or making HTTP requests.
 
-### Status Indicators
+**Endpoint:** `http://[ARDUINO_IP]/`
 
-- **Charging**: Battery is receiving charge from solar panel
-- **Discharging**: Battery is supplying power to load
-- **Idle**: No significant current flow
+**Method:** GET
+
+**Response Format:** JSON
+
+#### Example Response
+
+```json
+{
+"main_battery": {
+  "voltage": 3.85,
+  "percentage": 70.8,
+  "status": "NORMAL"
+},
+"solar1": {
+  "voltage": 5.12,
+  "current": 0.245,
+  "power": 1.25,
+  "energy": 0.125,
+  "charging": true
+},
+"solar2": {
+  "voltage": 5.08,
+  "current": 0.238,
+  "power": 1.21,
+  "energy": 0.118,
+  "charging": true
+},
+"faraday": {
+  "voltage": 2.45,
+  "power": 0.245,
+  "energy": 0.032,
+  "active": true
+},
+"system": {
+  "primary_source": "FARADAY",
+  "solar_active": false,
+  "faraday_active": true,
+  "uptime": 325
+}
+}
+```
+
+#### Status Codes
+
+| Status | Description |
+|--------|-------------|
+| CRITICAL | Battery ≤ 10% |
+| LOW | Battery ≤ 30% |
+| NORMAL | Battery 30-90% |
+| FULL | Battery ≥ 90% |
+
+### Bluetooth Interface
+
+Connect via HC-05 Bluetooth module at 9600 baud to receive the same JSON data stream.
 
 ## 🔧 Troubleshooting
 
-### Common Issues
+### Solar Manager Issues
 
-#### Solar Manager Initialization Failed
+**Problem:** "Solar Manager X failed to initialize"
 
-**Symptoms**: "Solar Manager X failed to initialize" message loops
-
-**Solutions**:
-1. Check I2C wiring connections (SDA, SCL, GND)
-2. Verify I2C addresses are correct and unique
+**Solutions:**
+1. Check I2C wiring (SDA, SCL, GND)
+2. Verify I2C addresses (0x10 and 0x11)
 3. Ensure SP110 modules are powered
-4. Check for loose connections
-5. Try using external pull-up resistors (4.7kΩ) on SDA and SCL lines
+4. Try external 4.7kΩ pull-up resistors on SDA/SCL
 
-#### No Solar Voltage Reading
+### Faraday Generator Issues
 
-**Symptoms**: Solar voltage shows 0.00V
+**Problem:** Faraday voltage always reads 0V
 
-**Solutions**:
-1. Check solar panel connections to SP110
-2. Verify solar panel is receiving light
-3. Test solar panel output with multimeter
-4. Check for damaged solar panel
+**Solutions:**
+1. Check rectifier circuit connections
+2. Test coil continuity with multimeter
+3. Verify magnet polarity alternates correctly
+4. Ensure magnets can move freely in tube
+5. Check voltage divider to A1 pin
+6. Test by shaking generator vigorously
 
-#### Battery Not Charging
+**Problem:** Faraday voltage unstable or noisy
 
-**Symptoms**: Battery current shows 0 or negative value
+**Solutions:**
+1. Add larger smoothing capacitor (1000µF)
+2. Add RC filter on ADC input
+3. Increase number of coil turns
+4. Use stronger magnets (N52 grade)
 
-**Solutions**:
-1. Verify battery connections to SP110
-2. Check if battery is already fully charged (4.2V)
-3. Ensure solar panel is generating sufficient voltage
-4. Verify charging is enabled in code
-5. Check battery health with multimeter
+### WiFi Connection Issues
 
-#### Incorrect Battery Percentage
+**Problem:** Cannot connect to WiFi
 
-**Symptoms**: Battery level doesn't match expected value
+**Solutions:**
+1. Verify SSID and password are correct
+2. Check if network is 2.4GHz (R4 WiFi doesn't support 5GHz)
+3. Move closer to WiFi router
+4. Check router allows new device connections
 
-**Solutions**:
-1. Calibrate voltage thresholds in code for your specific battery
-2. Allow battery to fully charge and discharge for calibration
-3. Adjust `calculateBatteryLevel()` function parameters
+**Problem:** WiFi keeps disconnecting
 
-### Serial Monitor Issues
+**Solutions:**
+1. Improve WiFi signal strength
+2. Use WiFi extender or access point
+3. Check for network congestion
+4. Verify power supply is stable
 
-**Problem**: No output in Serial Monitor
+### Battery Charging Issues
 
-**Solutions**:
-1. Verify baud rate is set to 115200
-2. Check USB cable connection
-3. Ensure correct COM port is selected
-4. Try different USB cable or port
+**Problem:** Main battery not charging
 
-**Problem**: Garbled text in Serial Monitor
+**Solutions:**
+1. Check MOSFET/relay connections on pins 7 and 8
+2. Verify charging logic in serial output
+3. Test Faraday generator output voltage
+4. Check solar panel voltages
+5. Verify battery isn't already full (4.2V)
 
-**Solutions**:
-1. Set baud rate to 115200
-2. Reset Arduino after opening Serial Monitor
+### Power Source Selection Issues
+
+**Problem:** System doesn't switch to Faraday when available
+
+**Solutions:**
+1. Check `faradayMinVoltage` threshold setting
+2. Verify Faraday voltage reading on A1
+3. Test pin 8 output with LED
+4. Check charging control circuit
 
 ## 🔄 Maintenance
 
-### Regular Checks (Weekly)
+### Daily Checks (Automated via Monitoring)
 
-- [ ] Inspect solar panels for dirt, debris, or damage
-- [ ] Check all cable connections for corrosion
-- [ ] Verify enclosure seals are intact
 - [ ] Monitor battery voltage levels
-- [ ] Check for water intrusion in enclosure
+- [ ] Check power generation from all sources
+- [ ] Verify WiFi connectivity
+- [ ] Review charging status
 
-### Periodic Maintenance (Monthly)
+### Weekly Checks
+
+- [ ] Inspect solar panels for dirt or debris
+- [ ] Check Faraday generator for mechanical issues
+- [ ] Verify all cable connections
+- [ ] Check enclosure seals
+- [ ] Test Bluetooth connectivity
+
+### Monthly Maintenance
 
 - [ ] Clean solar panels with fresh water
-- [ ] Inspect all wiring for wear or damage
+- [ ] Inspect Faraday generator magnets and coil
 - [ ] Check battery health and capacity
 - [ ] Verify mounting hardware is secure
-- [ ] Replace silica gel packets if saturated
+- [ ] Replace silica gel packets
 - [ ] Download and backup monitoring data
+- [ ] Test all three power sources individually
+
+### Quarterly Maintenance
+
+- [ ] Disassemble and inspect Faraday generator
+- [ ] Test battery capacity with load test
+- [ ] Check for corrosion on all connections
+- [ ] Verify rectifier and smoothing capacitors
+- [ ] Update firmware if available
+- [ ] Calibrate voltage sensors
 
 ### Annual Maintenance
 
-- [ ] Replace batteries if capacity degraded
-- [ ] Apply anti-corrosion treatment to connections
-- [ ] Inspect and replace worn cable glands
-- [ ] Test system under various light conditions
-- [ ] Update firmware if new version available
+- [ ] Replace batteries if capacity degraded >20%
+- [ ] Rebuild Faraday generator if performance degraded
+- [ ] Apply anti-corrosion treatment
+- [ ] Replace worn cable glands
+- [ ] Full system performance test
+- [ ] Update all documentation
 
 ## 🌐 Future Enhancements
 
-Potential upgrades for this system:
+### Hardware Upgrades
 
-- **WiFi Data Logging**: Upload monitoring data to cloud services
-- **SD Card Logging**: Local data storage for offline analysis
-- **Web Dashboard**: Real-time monitoring via web interface
-- **GPS Integration**: Location tracking for mobile buoys
-- **Temperature Monitoring**: Battery and ambient temperature sensors
+- **MPPT Controller for Faraday**: Maximize power extraction from wave motion
+- **Larger Faraday Generator**: Increase coil turns and magnet count
+- **GPS Module**: Location tracking for mobile buoys
+- **LoRa Communication**: Long-range data transmission
+- **Solar Panel Tracking**: Motorized solar panel orientation
+
+### Software Enhancements
+
+- **Machine Learning**: Predict optimal power source based on weather
+- **Cloud Integration**: Upload data to AWS/Azure IoT
+- **Mobile App**: Dedicated monitoring application
+- **Data Analytics**: Historical performance analysis
 - **Alert System**: Email/SMS notifications for critical conditions
-- **Load Management**: Automatic load switching based on battery level
-- **MPPT Optimization**: Maximum Power Point Tracking algorithms
+- **Web Dashboard**: Real-time visualization with charts
 
-## 📝 Contributing
+### System Improvements
 
-Contributions are welcome! Please feel free to submit pull requests or open issues for:
+- **Load Management**: Automatic load shedding based on battery level
+- **Energy Forecasting**: Predict available power based on weather
+- **Adaptive Charging**: Optimize charging algorithms
+- **Multi-Buoy Network**: Coordinate multiple buoys
+- **Remote Firmware Updates**: OTA (Over-The-Air) updates
 
-- Bug fixes
-- Feature enhancements
-- Documentation improvements
-- Hardware compatibility updates
+## 📝 Technical Specifications
+
+### Power Generation Capacity
+
+| Source | Voltage | Current | Power | Notes |
+|--------|---------|---------|-------|-------|
+| Solar Panel 1 | 5V | 0-2A | 0-10W | Weather dependent |
+| Solar Panel 2 | 5V | 0-2A | 0-10W | Weather dependent |
+| Faraday Generator | 0-5V | 0-0.5A | 0-2.5W | Wave motion dependent |
+| **Total** | - | - | **0-22.5W** | Combined maximum |
+
+### Battery Specifications
+
+| Parameter | Value | Notes |
+|-----------|-------|-------|
+| Chemistry | Li-ion 18650 | Standard cells |
+| Nominal Voltage | 3.7V | Per cell |
+| Charge Voltage | 4.2V | Maximum |
+| Discharge Cutoff | 3.0V | Minimum safe |
+| Capacity | 5000-10000mAh | Main battery |
+| Cycle Life | 500-1000 cycles | Typical |
+
+### Environmental Ratings
+
+| Parameter | Rating | Notes |
+|-----------|--------|-------|
+| Operating Temperature | -10°C to 50°C | Electronics |
+| Storage Temperature | -20°C to 60°C | Without batteries |
+| Humidity | 0-95% RH | Non-condensing |
+| Water Resistance | IP67 | With proper enclosure |
+| Salt Spray | 1000 hours | With marine-grade components |
 
 ## 📄 License
 
@@ -411,31 +712,51 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 👥 Authors
 
-- Initial development for marine buoy monitoring application
-- Community contributions welcome
+- Triple-source power system design
+- Faraday wave energy integration
+- WiFi and Bluetooth monitoring implementation
 
 ## 🙏 Acknowledgments
 
-- DFRobot for SP110 Solar Power Manager hardware and libraries
-- Arduino community for development tools and support
-- Marine renewable energy community for application insights
+- DFRobot for SP110 Solar Power Manager
+- Arduino community for development tools
+- Marine renewable energy researchers
+- Electromagnetic induction pioneers
 
 ## 📞 Support
 
-For questions, issues, or suggestions:
+For questions or issues:
 
 - Open an issue on GitHub
-- Check the troubleshooting section
-- Consult DFRobot SP110 documentation
+- Check troubleshooting section
+- Consult component datasheets
 - Arduino R4 WiFi documentation
 
 ---
 
-**⚠️ Safety Warning**: This system involves electrical components and batteries. Always follow proper safety procedures when working with solar panels and lithium batteries. Ensure proper ventilation and use appropriate protective equipment. For marine applications, follow all relevant maritime safety regulations.
+**⚠️ Safety Warning**: 
 
-**🌊 Marine Deployment Note**: Ensure all components are properly waterproofed and rated for marine environments. Regular maintenance is critical for reliable operation in harsh marine conditions.
+This system involves:
+- Electrical components and batteries
+- Electromagnetic fields from Faraday generator
+- High-energy neodymium magnets (pinch hazard)
+- Marine deployment hazards
+
+Always follow proper safety procedures. Use appropriate protective equipment. For marine applications, follow all relevant maritime safety regulations.
+
+**🌊 Marine Deployment Note**: 
+
+Ensure all components are properly waterproofed and rated for marine environments. The Faraday generator must be securely mounted to capture wave motion while preventing damage from excessive movement. Regular maintenance is critical for reliable operation in harsh marine conditions.
+
+**🧲 Magnet Safety**: 
+
+Neodymium magnets are extremely powerful and can cause serious injury:
+- Keep away from pacemakers and electronic devices
+- Prevent finger pinching between magnets
+- Store magnets safely when not in use
+- Handle with care during assembly
 
 ---
 
-*Last Updated: November 2025*
-*Version: 1.0.0*
+*Last Updated: November 2025*  
+*Version: 2.0.0 - Triple-Source Edition*
